@@ -34,8 +34,10 @@
  */
  
 params.reads = "$baseDir/data/tcga/*_{1,2}.fastq.gz"
+
+//params.reads = "$baseDir/data/tbcrc011/*_R{1,2}.fastq.gz"
 params.transcriptome = "$baseDir/data/hg38/ref-transcripts.fa"
-params.outdir = "results"
+params.outdir = "resultsbiastcga"
 params.multiqc = "$baseDir/multiqc"
 
 log.info """\
@@ -64,7 +66,7 @@ Channel
 process index {
     tag "$transcriptome_file.simpleName"
 
-    cpus 8
+    cpus 16
     input:
     file genome from transcriptome_file
     output:
@@ -72,7 +74,7 @@ process index {
 
     script:       
     """
-    salmon index --threads $task.cpus -t $genome -i index
+    salmon index --threads $task.cpus -t $genome -i index -k 31
     """
             }
  
@@ -82,7 +84,7 @@ process quant {
 
     executor 'sge'
     scratch 'true'
-    clusterOptions '-l h_vmem=4G -pe smp 4 -l h_rt=46:00:00 -l athena=true'
+    clusterOptions '-l h_vmem=4G -pe smp 4-8 -l h_rt=26:00:00 -l athena=true'
         // cpus 12
     input:
     file index from index_ch
@@ -94,11 +96,13 @@ process quant {
 
     script:
     """
-    callSalmon.sh $reads $pair_id
+    callSalmon.gc.sh $reads $pair_id
 
     """
 }
   
+
+
 process fastqc {
     tag "FASTQC on $sample_id"
 
@@ -134,7 +138,8 @@ process multiqc {
     multiqc . 
     """
 }
- 
+
+
 workflow.onComplete { 
 	println ( workflow.success ? "\nDone! Open the following report in your browser --> $params.outdir/multiqc_report.html\n" : "Oops .. something went wrong" )
 }
