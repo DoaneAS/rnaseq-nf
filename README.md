@@ -13,7 +13,9 @@ implemented with Nextflow.
 
 ## Quickstart 
 
-1. If you don't have it already install Docker in your computer. Read more [here](https://docs.docker.com/).
+1. With [Singularity](http://singularity.lbl.gov) installed, pull the singularity images needed, for example:
+
+	`singularity pull --size 1400 docker://quay.io/biocontainers/multiqc:1.1--py27_0`
 
 2. Install Nextflow (version 0.24.x or higher):
       
